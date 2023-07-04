@@ -250,6 +250,21 @@ MiniCompletion.config = {
 
       return res
     end,
+
+    format_items = function(item, info, client_id)
+      return {
+        word = H.get_completion_word(item),
+        abbr = item.label,
+        -- kind = vim.lsp.protocol.CompletionItemKind[item.kind] or 'Unknown',
+        kind = 'lalal',
+        menu = item.detail or '',
+        info = info,
+        icase = 1,
+        dup = 1,
+        empty = 1,
+        user_data = { nvim = { lsp = { completion_item = item, client_id = client_id } } },
+      }
+    end,
     --minidoc_replace_end
   },
 
@@ -495,6 +510,7 @@ H.setup_config = function(config)
     },
     ['lsp_completion.auto_setup'] = { config.lsp_completion.auto_setup, 'boolean' },
     ['lsp_completion.process_items'] = { config.lsp_completion.process_items, 'function' },
+    ['lsp_completion.format_items'] = { config.lsp_completion.format_items, 'function' },
 
     ['mappings.force_twostep'] = { config.mappings.force_twostep, 'string' },
     ['mappings.force_fallback'] = { config.mappings.force_fallback, 'string' },
@@ -848,17 +864,7 @@ H.lsp_completion_response_items_to_complete_items = function(items, client_id)
     if not info and type(docs) == 'string' then info = docs end
     info = info or ''
 
-    table.insert(res, {
-      word = H.get_completion_word(item),
-      abbr = item.label,
-      kind = vim.lsp.protocol.CompletionItemKind[item.kind] or 'Unknown',
-      menu = item.detail or '',
-      info = info,
-      icase = 1,
-      dup = 1,
-      empty = 1,
-      user_data = { nvim = { lsp = { completion_item = item, client_id = client_id } } },
-    })
+    table.insert(res, H.get_config().lsp_completion.format_items(item, info, client_id))
   end
   return res
 end
